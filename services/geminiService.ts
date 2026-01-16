@@ -14,7 +14,7 @@ import { CLINICAL_PROTOCOLS } from '../knowledgeBase';
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-const SUPPORTED_LANGUAGES = ["English", "Hindi", "Marathi", "Gujarati", "Tamil", "Bengali"];
+const SUPPORTED_LANGUAGES = ["English", "Hindi", "Marathi", "Gujarati", "Tamil", "Telugu", "Kannada", "Malayalam", "Bengali", "Punjabi", "Odia", "Assamese", "Urdu"];
 
 // FIX: Updated model name to latest version according to guidelines
 export const processAudioSegment = async (
@@ -38,7 +38,10 @@ export const processAudioSegment = async (
     DIARIZATION: Identify "Doctor" and "Patient". 
     CONTEXT: Use previous dialogue for speaker consistency: "${previousContext}"
     
-    LANGUAGE DETECTION: Automatically detect the language of each speaker turn.
+    LANGUAGE DETECTION & SCRIPT: 
+    ${language === 'Auto-detect'
+      ? 'Automatically detect the language of each speaker turn. Use native scripts (Devanagari, Tamil, etc.).'
+      : `Primary Language Hint: ${language}. Preferably use the native script for ${language}, but automatically detect and handle other languages if the speaker switches.`}
     - Use Devanagari for Hindi/Marathi, Tamil script for Tamil, etc.
     - For English medical terms interleaved in native speech, keep them in English/Roman script if that's standard clinical practice in India.
     
@@ -96,7 +99,7 @@ export const cleanupTranscript = async (
     2. Correct diarization errors if they seem obvious.
     3. CRITICAL: Correct any misspelled medical terms, symptoms, or medications using the provided dictionary as a reference.
     4. HARD RULE: Do NOT add any medications that were not explicitly mentioned in the raw transcript. Only correct spellings of mentioned ones.
-    5. Keep the output strictly in the native script of ${language}.
+    5. ${language === 'Auto-detect' ? 'Use the primary language(s) detected in the transcript.' : `Keep the output strictly in the native script of ${language}.`}
     6. Maintain the original meaning and conversational flow, but make it professional.
     
     DICTIONARY REFERENCE:
@@ -124,7 +127,7 @@ export const generateSoapNote = async (
     You are an expert clinical documentalist.
     TASK: Generate a professional SOAP note from the cleaned transcript.
     
-    STRICT LANGUAGE RULE: All content MUST be written strictly in the native script of ${language}.
+    STRICT LANGUAGE RULE: ${language === 'Auto-detect' ? 'Use the primary language(s) detected in the transcript.' : `All content MUST be written strictly in the native script of ${language}.`}
     
     STRUCTURE RULES:
     1. Use exactly these headers: ## Subjective, ## Objective, ## Lab Results, ## Assessment.
@@ -177,7 +180,7 @@ export const generatePrescription = async (
        If a parameter is missing, mark it as "Not specified".
     5. ADVICE: List all other clinician-stated instructions in short bullet points.
     6. ACCURACY: Cross-reference with the Dictionary and Clinical Protocols only for spelling and dosage validation of mentioned items.
-    7. LANGUAGE: Write strictly in the native script of ${language}.
+    7. LANGUAGE: ${language === 'Auto-detect' ? 'Use the primary language(s) detected in the transcript.' : `Write strictly in the native script of ${language}.`}
     8. NO markdown formatting within sections (bold/italics).
   `;
 

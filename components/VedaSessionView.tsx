@@ -186,7 +186,7 @@ const PrescriptionTemplate: React.FC<{ patient: PatientDemographics; clinicalNot
 // Corrected: Explicitly using React namespace by adding import to resolve 'Cannot find namespace React'
 export const ScribeSessionView: React.FC<ScribeSessionViewProps> = ({ onEndSession, doctorProfile, language: defaultLanguage }) => {
     const [phase, setPhase] = useState<'consent' | 'active' | 'processing' | 'review'>('consent');
-    const [sessionLanguage, setSessionLanguage] = useState(defaultLanguage);
+    const [sessionLanguage, setSessionLanguage] = useState("Auto-detect");
     const [transcriptHistory, setTranscriptHistory] = useState<TranscriptEntry[]>([]);
     const [clinicalNote, setClinicalNote] = useState('');
     const [isEditingNote, setIsEditingNote] = useState(false);
@@ -313,7 +313,8 @@ export const ScribeSessionView: React.FC<ScribeSessionViewProps> = ({ onEndSessi
                     <div className="text-left">
                         <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest ml-1">Session Language</label>
                         <select value={sessionLanguage} onChange={(e) => setSessionLanguage(e.target.value)} className="w-full mt-2 bg-black border border-white/10 text-white rounded-2xl px-5 py-4 font-bold outline-none">
-                            {["English", "Hindi", "Marathi", "Gujarati", "Tamil", "Bengali"].map(l => <option key={l} value={l}>{l}</option>)}
+                            <option value="Auto-detect">Let Veda recognise the language</option>
+                            {["English", "Hindi", "Marathi", "Gujarati", "Tamil", "Telugu", "Kannada", "Malayalam", "Bengali", "Punjabi", "Odia", "Assamese", "Urdu"].map(l => <option key={l} value={l}>{l}</option>)}
                         </select>
                     </div>
                     <button onClick={handleStartSession} className="w-full py-5 bg-aivana-accent text-white rounded-2xl font-bold text-lg shadow-2xl transition-all active:scale-95">Initiate Signal Acquisition</button>
