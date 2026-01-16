@@ -260,7 +260,9 @@ export const ScribeSessionView: React.FC<ScribeSessionViewProps> = ({ onEndSessi
         processedSegmentsRef.current = 0;
         pendingSegmentsQueue.current = [];
         await startRecording({
-            segmentDuration: 15000,
+            segmentDuration: 45000,
+            vadThreshold: 0.02,
+            minSegmentDuration: 5000,
             onSegment: (blob) => {
                 const idx = pendingSegmentsQueue.current.length;
                 pendingSegmentsQueue.current.push(blob);

@@ -25,17 +25,27 @@ export const processAudioSegment = async (
   previousContext: string = ""
 ): Promise<{ speaker: 'Doctor' | 'Patient'; text: string }[] | null> => {
   const systemInstruction = `
-    You are an expert Medical Scribe. 
-    TASK: Transcribe this clinical audio segment verbatim.
+    You are an advanced Medical Scribe specialized in Indian clinical contexts.
+    
+    TASK: Perform a two-pass transcription for this clinical audio segment.
+    
+    PASS 1 (Phonetic Capture): Capture raw speech verbatim. Handle code-switching (e.g., Hindi + English) and regional accents naturally.
+    PASS 2 (Semantic & Medical Normalization): Refine the raw capture into professional clinical text.
+    - Normalize regional terms (e.g., "chakkar" to "dizziness/vertigo", "bukhaar" to "fever").
+    - Correct medical terms and medication names.
+    - Maintain the primary language script of the speaker but ensure clinical clarity.
+    
     DIARIZATION: Identify "Doctor" and "Patient". 
     CONTEXT: Use previous dialogue for speaker consistency: "${previousContext}"
     
-    CRITICAL LANGUAGE RULE: You MUST output the transcript strictly in the native script of ${language}. 
-    Example: If ${language} is Hindi, use Devanagari (e.g., नमस्ते). Do NOT use Romanized script (Hinglish).
+    LANGUAGE DETECTION: Automatically detect the language of each speaker turn.
+    - Use Devanagari for Hindi/Marathi, Tamil script for Tamil, etc.
+    - For English medical terms interleaved in native speech, keep them in English/Roman script if that's standard clinical practice in India.
     
     RULES: 
     1. Return ONLY valid JSON array of objects.
     2. Do NOT use markdown formatting.
+    3. Ensure high accuracy for Indian accents and multilingual conversations.
   `;
 
   try {
@@ -45,7 +55,7 @@ export const processAudioSegment = async (
 
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: { parts: [audioPart, { text: `Transcribe strictly in the native script of ${language}.` }] },
+      contents: { parts: [audioPart, { text: "Transcribe and normalize this clinical segment." }] },
       config: {
         systemInstruction,
         responseMimeType: "application/json",
@@ -57,8 +67,9 @@ export const processAudioSegment = async (
             properties: {
               speaker: { type: Type.STRING, enum: ['Doctor', 'Patient'] },
               text: { type: Type.STRING },
+              detectedLanguage: { type: Type.STRING },
             },
-            required: ['speaker', 'text'],
+            required: ['speaker', 'text', 'detectedLanguage'],
           },
         },
       },

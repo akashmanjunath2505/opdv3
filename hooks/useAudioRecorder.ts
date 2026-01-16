@@ -10,22 +10,40 @@ export const useAudioRecorder = () => {
     const segmentTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const startRecording = useCallback(async (
-        options: { onSegment?: (blob: Blob) => void; segmentDuration?: number } = {}
+        options: { onSegment?: (blob: Blob) => void; segmentDuration?: number; vadThreshold?: number; minSegmentDuration?: number } = {}
     ) => {
         setError(null);
         if (mediaRecorderRef.current || isRecording) return;
-        const { onSegment, segmentDuration = 20000 } = options;
+        const {
+            onSegment,
+            segmentDuration = 30000,
+            vadThreshold = 0.015,
+            minSegmentDuration = 3000
+        } = options;
 
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                audio: { 
-                    sampleRate: 16000, 
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    sampleRate: 16000,
                     channelCount: 1,
                     echoCancellation: true,
                     noiseSuppression: true
-                } 
+                }
             });
-            
+
+            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const source = audioContext.createMediaStreamSource(stream);
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Float32Array(bufferLength);
+
+            let lastSpeechTime = Date.now();
+            let isSpeaking = false;
+            let segmentStartTime = Date.now();
+
             const mediaOptions = { mimeType: 'audio/webm;codecs=opus' };
             const recorder = new MediaRecorder(stream, MediaRecorder.isTypeSupported(mediaOptions.mimeType) ? mediaOptions : undefined);
             mediaRecorderRef.current = recorder;
@@ -37,32 +55,62 @@ export const useAudioRecorder = () => {
                 }
             };
 
-            // To support segments, we stop and restart or use requestData.
-            // requestData + ondataavailable is best for non-destructive chunking.
-            if (onSegment) {
-                segmentTimerRef.current = setInterval(() => {
-                    if (recorder.state === 'recording') {
-                        recorder.requestData();
-                        // This emits currently buffered data. 
-                        // To get discrete segments, we take the last chunk.
-                        setTimeout(() => {
-                            if (audioChunksRef.current.length > 0) {
-                                const fullBlob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
-                                onSegment(fullBlob);
-                                // Note: For true discrete segments without headers issues, 
-                                // we actually often need a new recorder or a more complex approach.
-                                // However, Gemini handles concatenated webm well.
-                                // In this implementation, we send the "growing" file but Gemini 
-                                // focuses on the content. To truly optimize, we'd send just the delta.
-                            }
-                        }, 100);
-                    }
-                }, segmentDuration);
-            }
+            const checkVAD = () => {
+                if (recorder.state !== 'recording') return;
 
-            recorder.start();
+                analyser.getFloatTimeDomainData(dataArray);
+                let sum = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    sum += dataArray[i] * dataArray[i];
+                }
+                const rms = Math.sqrt(sum / bufferLength);
+
+                const now = Date.now();
+                if (rms > vadThreshold) {
+                    if (!isSpeaking) isSpeaking = true;
+                    lastSpeechTime = now;
+                } else {
+                    if (isSpeaking && (now - lastSpeechTime > 1500)) {
+                        // Silence detected for 1.5s after speech
+                        isSpeaking = false;
+                        const duration = now - segmentStartTime;
+                        if (duration > minSegmentDuration) {
+                            triggerSegment();
+                        }
+                    }
+                }
+
+                if (now - segmentStartTime > segmentDuration) {
+                    triggerSegment();
+                }
+
+                if (isRecording) {
+                    requestAnimationFrame(checkVAD);
+                }
+            };
+
+            const triggerSegment = () => {
+                if (recorder.state === 'recording' && audioChunksRef.current.length > 0) {
+                    recorder.requestData();
+                    setTimeout(() => {
+                        const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
+                        if (onSegment) onSegment(blob);
+                        // Reset for next segment - we keep the same recorder to avoid header overhead
+                        // but Gemini's diarization handles the full stream context better.
+                        // For per-chunk processing, we just need to ensure we don't send massive files.
+                        // Here we keep accumulating to maintain audio headers, but Gemini focuses on the new parts.
+                        // To truly "reset", we'd need to stop/start, but that causes pops.
+                        segmentStartTime = Date.now();
+                    }, 100);
+                }
+            };
+
+            recorder.start(1000); // Collect data every 1s
             setIsRecording(true);
             setIsPaused(false);
+
+            requestAnimationFrame(checkVAD);
+
         } catch (err) {
             console.error('Microphone access error:', err);
             setError('Microphone access denied.');
@@ -72,16 +120,11 @@ export const useAudioRecorder = () => {
 
     const stopRecording = useCallback((): Promise<Blob | null> => {
         return new Promise((resolve) => {
-            if (segmentTimerRef.current) {
-                clearInterval(segmentTimerRef.current);
-                segmentTimerRef.current = null;
-            }
-
             if (!mediaRecorderRef.current) {
                 resolve(null);
                 return;
             }
-            
+
             const recorder = mediaRecorderRef.current;
 
             const cleanupAndResolve = () => {
