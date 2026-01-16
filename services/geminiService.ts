@@ -116,12 +116,13 @@ export const generateSoapNote = async (
     STRICT LANGUAGE RULE: All content MUST be written strictly in the native script of ${language}.
     
     STRUCTURE RULES:
-    1. Use exactly these headers: ## Subjective, ## Objective, ## Assessment.
+    1. Use exactly these headers: ## Subjective, ## Objective, ## Lab Results, ## Assessment.
     2. SUBJECTIVE: List patient symptoms in short bullet points.
     3. OBJECTIVE: List physical findings or observations if any.
-    4. ASSESSMENT: List suspected diagnoses or findings as short bullet points.
-    5. DO NOT include a "Plan" or "Prescription" section here.
-    6. NO markdown formatting within sections (bold/italics).
+    4. LAB RESULTS: List any lab test values, vital signs (BP, PR, SpO2, Temp), or investigation reports mentioned.
+    5. ASSESSMENT: List suspected diagnoses or findings as short bullet points.
+    6. DO NOT include a "Plan" or "Prescription" section here.
+    7. NO markdown formatting within sections (bold/italics).
   `;
 
   try {
@@ -154,7 +155,7 @@ export const generatePrescription = async (
     
     RULES:
     1. HEADER: Use "## Plan".
-    2. HARD RULE: Only extract drugs that were EXPLICITLY mentioned in the cleaned transcript. Do NOT hallucinate or suggest additional drugs.
+    2. HARD RULE: Only extract drugs and advice (diet, follow-up, warnings, etc.) that were EXPLICITLY mentioned in the cleaned transcript. Do NOT hallucinate, suggest, or recommend any additional drugs or advice that were not stated by the clinician.
     3. VALIDATION RULE: You MUST validate and extract four parameters for every medication:
        - Name: Validate against the Dictionary.
        - Dosage: Extract the specific dose mentioned (e.g., 500mg, 1 tablet).
@@ -163,8 +164,8 @@ export const generatePrescription = async (
     4. MEDICINE FORMAT: "- Medicine Name | Dosage | Frequency | Route". 
        Example: "- Paracetamol | 500mg | Twice daily | Oral"
        If a parameter is missing, mark it as "Not specified".
-    5. ADVICE: List all other instructions (diet, follow-up, warnings) in short bullet points.
-    6. ACCURACY: Cross-reference with the Dictionary and Clinical Protocols to ensure correct spellings.
+    5. ADVICE: List all other clinician-stated instructions in short bullet points.
+    6. ACCURACY: Cross-reference with the Dictionary and Clinical Protocols only for spelling and dosage validation of mentioned items.
     7. LANGUAGE: Write strictly in the native script of ${language}.
     8. NO markdown formatting within sections (bold/italics).
   `;
