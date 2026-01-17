@@ -53,7 +53,7 @@ const PrescriptionTemplate: React.FC<{ patient: PatientDemographics; clinicalNot
 
     const containerClass = isPreview
         ? "w-full bg-white text-black p-6 rounded-lg shadow-inner overflow-hidden border border-gray-200"
-        : "printable-area p-8 bg-white text-black min-h-screen relative";
+        : "printable-area p-8 bg-white text-black relative";
 
     const baseFontSize = isPreview ? 'text-[10px]' : 'text-[12.5px]';
     const headerTitleSize = isPreview ? 'text-[15px]' : 'text-[22px]';
@@ -74,7 +74,7 @@ const PrescriptionTemplate: React.FC<{ patient: PatientDemographics; clinicalNot
     return (
         <div className={containerClass} style={{ fontFamily: 'Arial, Helvetica, "Noto Sans Devanagari", sans-serif' }}>
             {/* Header Branding */}
-            <div className="flex justify-between items-start mb-1">
+            <div className="flex justify-between items-start mb-1" style={{ breakInside: 'avoid' }}>
                 <div className="flex-1">
                     <div className={`${headerTitleSize} font-bold leading-tight uppercase`}>Doctors Name</div>
                     <div className={`${isPreview ? 'text-[8.5px]' : 'text-[11.5px]'} font-normal mt-0.5`}>Qualification</div>
@@ -93,7 +93,7 @@ const PrescriptionTemplate: React.FC<{ patient: PatientDemographics; clinicalNot
             <div className="h-0.5 bg-[#8A63D2] w-full mb-5"></div>
 
             {/* Demographics Grid */}
-            <div className="grid grid-cols-2 border border-gray-300 mb-5 relative">
+            <div className="grid grid-cols-2 border border-gray-300 mb-5 relative" style={{ breakInside: 'avoid' }}>
                 <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300"></div>
                 <div className={`${metaLabelSize} space-y-3.5 p-3.5`}>
                     <div className="font-bold">Name/ID - <span className="font-normal ml-1">{patient.name}</span></div>
@@ -174,7 +174,7 @@ const PrescriptionTemplate: React.FC<{ patient: PatientDemographics; clinicalNot
             </div>
 
             {/* Signature Area */}
-            <div className="flex justify-end items-end pt-14">
+            <div className="flex justify-end items-end pt-14" style={{ breakInside: 'avoid' }}>
                 <div className="text-center">
                     <div className={`border-t border-black ${isPreview ? 'w-32' : 'w-60'} pt-2 font-bold ${baseFontSize} uppercase`}>Doctors Signature</div>
                 </div>
@@ -325,8 +325,8 @@ export const ScribeSessionView: React.FC<ScribeSessionViewProps> = ({ onEndSessi
 
     return (
         <div className="flex-1 flex flex-col bg-aivana-dark overflow-hidden">
-        <div className="hidden print:block"><PrescriptionTemplate patient={patient} clinicalNote={clinicalNote} /></div>
-        <header className="h-20 border-b border-aivana-light-grey bg-black relative px-8 flex items-center justify-between shadow-lg no-print">
+            <div className="hidden print:block"><PrescriptionTemplate patient={patient} clinicalNote={clinicalNote} /></div>
+            <header className="h-20 border-b border-aivana-light-grey bg-black relative px-8 flex items-center justify-between shadow-lg no-print">
                 {phase === 'active' && <AudioWaveform />}
                 <div className="flex items-center gap-4 relative z-10">
                     <div className={`p-2 rounded-xl border ${phase === 'active' ? 'bg-red-500/10 border-red-500/20' : 'bg-green-500/10 border-green-500/20'}`}>
