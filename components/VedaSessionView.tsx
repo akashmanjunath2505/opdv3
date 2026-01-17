@@ -325,8 +325,8 @@ export const ScribeSessionView: React.FC<ScribeSessionViewProps> = ({ onEndSessi
 
     return (
         <div className="flex-1 flex flex-col bg-aivana-dark overflow-hidden">
-            <div className="hidden"><PrescriptionTemplate patient={patient} clinicalNote={clinicalNote} /></div>
-            <header className="h-20 border-b border-aivana-light-grey bg-black relative px-8 flex items-center justify-between shadow-lg no-print">
+        <div className="hidden print:block"><PrescriptionTemplate patient={patient} clinicalNote={clinicalNote} /></div>
+        <header className="h-20 border-b border-aivana-light-grey bg-black relative px-8 flex items-center justify-between shadow-lg no-print">
                 {phase === 'active' && <AudioWaveform />}
                 <div className="flex items-center gap-4 relative z-10">
                     <div className={`p-2 rounded-xl border ${phase === 'active' ? 'bg-red-500/10 border-red-500/20' : 'bg-green-500/10 border-green-500/20'}`}>
