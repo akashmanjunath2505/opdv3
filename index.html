@@ -53,23 +53,34 @@
         padding: 0 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+        visibility: hidden !important;
+      }
+
+      * {
+        overflow: visible !important;
       }
 
       /* Use .no-print to hide UI elements during export */
       .no-print {
         display: none !important;
+        visibility: hidden !important;
       }
 
       /* Show only the printable document */
       .printable-area {
         display: block !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
         width: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
         background: white !important;
         visibility: visible !important;
+        z-index: 99999 !important;
       }
 
+      .printable-area,
       .printable-area * {
         visibility: visible !important;
         color: black !important;
