@@ -135,6 +135,14 @@ const PrescriptionTemplate: React.FC<{ patient: PatientDemographics; clinicalNot
                 {getSectionContent('Assessment')}
             </div>
 
+            {/* Differential Diagnosis (Full Width) */}
+            <div className="bg-[#FFF0F0] border-l border-r border-t border-gray-300 p-2">
+                <div className={`${baseFontSize} font-bold uppercase tracking-tighter`}>Differential Diagnosis</div>
+            </div>
+            <div className={`border border-gray-300 mb-5 p-4 ${baseFontSize} whitespace-pre-wrap min-h-[60px] font-normal leading-relaxed`}>
+                {getSectionContent('Differential Diagnosis') || "None identified."}
+            </div>
+
             {/* Lab Test Results (Full Width) */}
             <div className="bg-[#FAF5FF] border-l border-r border-t border-gray-300 p-2">
                 <div className={`${baseFontSize} font-bold uppercase tracking-tighter`}>Lab Test Results</div>

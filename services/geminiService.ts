@@ -130,13 +130,14 @@ export const generateSoapNote = async (
     STRICT LANGUAGE RULE: ${language === 'Auto-detect' ? 'Use the primary language(s) detected in the transcript.' : `All content MUST be written strictly in the native script of ${language}.`}
     
     STRUCTURE RULES:
-    1. Use exactly these headers: ## Subjective, ## Objective, ## Lab Results, ## Assessment.
+    1. Use exactly these headers: ## Subjective, ## Objective, ## Lab Results, ## Assessment, ## Differential Diagnosis.
     2. SUBJECTIVE: List patient symptoms in short bullet points.
     3. OBJECTIVE: List physical findings or observations if any.
     4. LAB RESULTS: List any lab test values, vital signs (BP, PR, SpO2, Temp), or investigation reports mentioned.
-    5. ASSESSMENT: List suspected diagnoses or findings as short bullet points.
-    6. DO NOT include a "Plan" or "Prescription" section here.
-    7. NO markdown formatting within sections (bold/italics).
+    5. ASSESSMENT: List the primary or most likely diagnosis.
+    6. DIFFERENTIAL DIAGNOSIS: List other potential diagnoses that are being considered, if any.
+    7. DO NOT include a "Plan" or "Prescription" section here.
+    8. NO markdown formatting within sections (bold/italics).
   `;
 
   try {
